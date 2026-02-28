@@ -1,0 +1,30 @@
+:root {
+  --background: 13 27 42;
+  --foreground: 241 245 249;
+  --card: 30 41 59;
+  --primary: 16 185 129;
+  --primary-foreground: 13 27 42;
+  --muted: 100 116 139;
+  --danger: 239 68 68;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 500px;
+  min-height: 600px;
+  background-color: rgb(var(--background));
+  color: rgb(var(--foreground));
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
