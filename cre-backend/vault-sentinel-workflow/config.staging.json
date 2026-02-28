@@ -1,0 +1,99 @@
+{
+  "schedule": "0 */5 * * * *",
+  "exchanges": [
+    {
+      "exchangeId": "binance",
+      "name": "Binance",
+      "reserveApiUrl": "https://www.binance.com/bapi/composite/v1/public/cms/article/catalog/list/query?catalogId=48&pageNo=1&pageSize=1",
+      "walletTrackerUrls": [
+        "https://api.etherscan.io/api?module=account&action=balance&address=0x28C6c06298d514Db089934071355E5743bf21d60&tag=latest",
+        "https://api.etherscan.io/api?module=account&action=balance&address=0x21a31Ee1afC51d94C2eFcCAa2092aD1028285549&tag=latest"
+      ]
+    },
+    {
+      "exchangeId": "coinbase",
+      "name": "Coinbase",
+      "reserveApiUrl": "https://api.exchange.coinbase.com/currencies",
+      "walletTrackerUrls": [
+        "https://api.etherscan.io/api?module=account&action=balance&address=0x503828976D22510aad0201ac7EC88293211D23Da&tag=latest"
+      ]
+    },
+    {
+      "exchangeId": "kraken",
+      "name": "Kraken",
+      "reserveApiUrl": "https://api.kraken.com/0/public/SystemStatus",
+      "walletTrackerUrls": [
+        "https://api.etherscan.io/api?module=account&action=balance&address=0x267be1C1D684F78cb4F6a176C4911b741E4Ffdc0&tag=latest"
+      ]
+    },
+    {
+      "exchangeId": "okx",
+      "name": "OKX",
+      "reserveApiUrl": "https://www.okx.com/api/v5/public/reserve-trading-pair?instId=BTC-USDT",
+      "walletTrackerUrls": [
+        "https://api.etherscan.io/api?module=account&action=balance&address=0x6cC5F688a315f3dC28A7781717a9A798a59fDA7b&tag=latest"
+      ]
+    },
+    {
+      "exchangeId": "bybit",
+      "name": "Bybit",
+      "reserveApiUrl": "https://api2.bybit.com/v3/public/deposit/coin/reserve",
+      "walletTrackerUrls": [
+        "https://api.etherscan.io/api?module=account&action=balance&address=0xf89d7b9c864f589bbF53a82105107622B35EaA40&tag=latest"
+      ]
+    },
+    {
+      "exchangeId": "gateio",
+      "name": "Gate.io",
+      "reserveApiUrl": "https://www.gate.io/api/v4/spot/currencies",
+      "walletTrackerUrls": [
+        "https://api.etherscan.io/api?module=account&action=balance&address=0x0D0707963952f2fBA59dD06f2b425ace40b492Fe&tag=latest"
+      ]
+    },
+    {
+      "exchangeId": "kucoin",
+      "name": "KuCoin",
+      "reserveApiUrl": "https://api.kucoin.com/api/v1/currencies",
+      "walletTrackerUrls": [
+        "https://api.etherscan.io/api?module=account&action=balance&address=0x2B5634C42055806a59e9107ED44D43c426E58258&tag=latest"
+      ]
+    },
+    {
+      "exchangeId": "cryptocom",
+      "name": "Crypto.com",
+      "reserveApiUrl": "https://crypto.com/exchange/v1/public/get-instruments",
+      "walletTrackerUrls": [
+        "https://api.etherscan.io/api?module=account&action=balance&address=0x6262998Ced04146fA42253a5C0AF90CA02dfd2A3&tag=latest"
+      ]
+    },
+    {
+      "exchangeId": "bitget",
+      "name": "Bitget",
+      "reserveApiUrl": "https://api.bitget.com/api/v2/spot/public/coins",
+      "walletTrackerUrls": [
+        "https://api.etherscan.io/api?module=account&action=balance&address=0x97b9D2102A9a65A26E1EE82D59e42d1B73B68689&tag=latest"
+      ]
+    },
+    {
+      "exchangeId": "mexc",
+      "name": "MEXC",
+      "reserveApiUrl": "https://api.mexc.com/api/v3/exchangeInfo",
+      "walletTrackerUrls": [
+        "https://api.etherscan.io/api?module=account&action=balance&address=0x75e89d5979E4f6Fba9F97c104c2F0AFB3F1dcB88&tag=latest"
+      ]
+    }
+  ],
+  "evms": [
+    {
+      "chainName": "ethereum-mainnet",
+      "porFeedAddresses": [
+        "0x8350b7De6a6a2C1368E7fc58F77e0F0B3e35b3aC"
+      ]
+    }
+  ],
+  "alertThresholds": {
+    "healthyMin": 1.05,
+    "warningMin": 1.0,
+    "criticalMin": 0.95
+  }
+}
