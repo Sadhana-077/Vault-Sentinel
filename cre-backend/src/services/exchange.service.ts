@@ -167,13 +167,6 @@ class ExchangeService {
 
     return result;
   }
-
-  /**
-   * Get all exchanges
-   */
-  getAllExchanges(): ExchangeConfig[] {
-    return Array.from(this.exchanges.values());
-  }
 }
 
 export const exchangeService = new ExchangeService();
