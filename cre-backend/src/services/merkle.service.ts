@@ -8,22 +8,36 @@ interface MerkleProof {
 }
 
 class MerkleService {
+  /**
+   * Hash a raw string leaf into a proper 32-byte keccak256 hex value.
+   * This ensures leaves are always valid bytes32 before being used in the tree.
+   */
+  static hashLeaf(value: string): string {
+    // If it's already a valid 32-byte hex, use it directly
+    if (/^0x[0-9a-fA-F]{64}$/.test(value)) {
+      return value;
+    }
+    // Otherwise hash the UTF-8 encoded string
+    return ethers.keccak256(ethers.toUtf8Bytes(value));
+  }
+
   static hashPair(left: string, right: string): string {
     return ethers.solidityPackedKeccak256(['bytes32', 'bytes32'], [left, right]);
   }
 
   static verifyProof(proof: MerkleProof): boolean {
     try {
-      let current = proof.leaf;
+      let current = this.hashLeaf(proof.leaf);
 
       for (const sibling of proof.proof) {
+        const siblingHash = this.hashLeaf(sibling);
         // Sort to ensure deterministic ordering
-        const [left, right] =
-          current.toLowerCase() < sibling.toLowerCase()
-            ? [current, sibling]
-            : [sibling, current];
+        const [l, r] =
+          current.toLowerCase() < siblingHash.toLowerCase()
+            ? [current, siblingHash]
+            : [siblingHash, current];
 
-        current = this.hashPair(left, right);
+        current = this.hashPair(l, r);
       }
 
       const isValid = current.toLowerCase() === proof.root.toLowerCase();
@@ -48,7 +62,8 @@ class MerkleService {
       throw new Error('Cannot build tree from empty leaves');
     }
 
-    let currentLevel = [...leaves];
+    // Hash all leaves first so they are valid bytes32
+    let currentLevel = leaves.map((l) => this.hashLeaf(l));
 
     while (currentLevel.length > 1) {
       const nextLevel: string[] = [];
@@ -72,7 +87,8 @@ class MerkleService {
     }
 
     const proof: string[] = [];
-    let currentLevel = [...leaves];
+    // Hash all leaves first
+    let currentLevel = leaves.map((l) => this.hashLeaf(l));
     let currentIndex = index;
 
     while (currentLevel.length > 1) {

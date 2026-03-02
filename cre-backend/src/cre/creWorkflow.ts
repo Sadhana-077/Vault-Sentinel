@@ -54,7 +54,7 @@ export async function executeCREWorkflow(
 
   try {
     // Get exchange config
-    exchange = exchangeService.getExchange(input.exchangeId);
+    exchange = exchangeService.getExchange(input.exchangeId) ?? null;
     if (!exchange) {
       throw new Error(`Exchange not found: ${input.exchangeId}`);
     }
@@ -65,7 +65,7 @@ export async function executeCREWorkflow(
       reserve = await fetchReserveData(input.exchangeId);
       logger.info('Reserve data fetched', {
         exchangeId: input.exchangeId,
-        reserveUSD: reserve.totalReserveUSD,
+        reserveUSD: reserve.reserveInUSD,
       });
     } catch (error) {
       const message = `Reserve fetch failed: ${error instanceof Error ? error.message : String(error)}`;
@@ -79,7 +79,7 @@ export async function executeCREWorkflow(
       liability = await fetchLiabilityData(input.exchangeId);
       logger.info('Liability data fetched', {
         exchangeId: input.exchangeId,
-        liabilityUSD: liability.totalLiabilityUSD,
+        liabilityUSD: liability.liabilityInUSD,
       });
     } catch (error) {
       const message = `Liability fetch failed: ${error instanceof Error ? error.message : String(error)}`;
@@ -93,7 +93,7 @@ export async function executeCREWorkflow(
       solvency = await calculateSolvency(input.exchangeId);
       logger.info('Solvency calculated', {
         exchangeId: input.exchangeId,
-        ratio: solvency.solvencyRatio,
+        ratio: solvency.ratio,
         status: solvency.status,
       });
     } catch (error) {
@@ -203,7 +203,7 @@ export async function storeWorkflowResult(result: CREWorkflowResult): Promise<vo
     // TODO: Integrate with CRE SDK to publish results
     // Example: await creClient.publishResult({
     //   exchangeId: result.exchangeId,
-    //   solvencyRatio: result.solvency?.solvencyRatio,
+    //   solvencyRatio: result.solvency?.ratio,
     //   status: result.solvency?.status,
     //   timestamp: result.timestamp,
     //   verified: true,
