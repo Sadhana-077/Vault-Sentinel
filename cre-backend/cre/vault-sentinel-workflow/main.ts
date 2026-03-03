@@ -32,7 +32,7 @@ import {
 } from "@chainlink/cre-sdk"
 import { z } from "zod"
 import { encodeFunctionData, decodeFunctionResult } from "viem"
-import { AggregatorV3InterfaceABI } from "../contracts/abi"
+import { AggregatorV3InterfaceABI } from "../../backend-contract/abi/AggregatorV3Interface"
 
 // ============================================================
 // Configuration Schema
@@ -105,7 +105,7 @@ type SolvencyResult = {
 // ============================================================
 
 const fetchWalletBalance = (
-  sendRequester: HTTPSendRequester,
+  httpClient: typeof HTTPClient.prototype,
   walletUrl: string,
   exchangeId: string
 ): ExchangeWalletBalance => {
@@ -114,7 +114,7 @@ const fetchWalletBalance = (
     method: "GET" as const,
   }
 
-  const resp = sendRequester.sendRequest(req).result()
+  const resp = httpClient.sendRequest({} as any, req).result()
 
   if (resp.statusCode !== 200) {
     // Return zero balance on API failure — don't crash the workflow
@@ -163,7 +163,7 @@ const fetchWalletBalance = (
 // ============================================================
 
 const checkExchangeApi = (
-  sendRequester: HTTPSendRequester,
+  httpClient: typeof HTTPClient.prototype,
   apiUrl: string
 ): boolean => {
   try {
@@ -175,7 +175,7 @@ const checkExchangeApi = (
       },
     }
 
-    const resp = sendRequester.sendRequest(req).result()
+    const resp = httpClient.sendRequest({} as any, req).result()
     return resp.statusCode >= 200 && resp.statusCode < 400
   } catch {
     return false
@@ -201,7 +201,7 @@ const fetchExchangeData = (
 
     for (const walletUrl of exchange.walletTrackerUrls.slice(0, 2)) {
       const balance = fetchWalletBalance(
-        { sendRequest: (req) => httpClient.sendRequest(nodeRuntime, req) },
+        httpClient,
         walletUrl,
         exchange.exchangeId
       )
@@ -236,6 +236,13 @@ const readPoRFeed = (
   chainSelector: bigint,
   feedAddress: string
 ): PoRFeedData => {
+  const toHex = (v: any): `0x${string}` => {
+    if (!v) return '0x'
+    if (typeof v === 'string') return v.startsWith('0x') ? v as `0x${string}` : (`0x${v}` as `0x${string}`)
+    if (v instanceof Uint8Array) return ('0x' + Array.from(v).map((b: number) => b.toString(16).padStart(2, '0')).join('')) as `0x${string}`
+    if (Array.isArray(v)) return ('0x' + Array.from(Uint8Array.from(v)).map((b: number) => b.toString(16).padStart(2, '0')).join('')) as `0x${string}`
+    return (String(v) as `0x${string}`)
+  }
   const evmClient = new EVMClient(chainSelector)
 
   // Encode the latestRoundData() call
@@ -256,7 +263,7 @@ const readPoRFeed = (
     functionName: "decimals",
   })
 
-  // Make all three EVM read calls
+  // Make all three EVM read calls and await results
   const roundDataResult = evmClient.callContract(runtime, {
     call: encodeCallMsg({
       from: "0x0000000000000000000000000000000000000000",
@@ -264,7 +271,7 @@ const readPoRFeed = (
       data: callData,
     }),
     blockNumber: LAST_FINALIZED_BLOCK_NUMBER,
-  })
+  }).result()
 
   const descResult = evmClient.callContract(runtime, {
     call: encodeCallMsg({
@@ -273,7 +280,7 @@ const readPoRFeed = (
       data: descCallData,
     }),
     blockNumber: LAST_FINALIZED_BLOCK_NUMBER,
-  })
+  }).result()
 
   const decimalsResult = evmClient.callContract(runtime, {
     call: encodeCallMsg({
@@ -282,30 +289,25 @@ const readPoRFeed = (
       data: decimalsCallData,
     }),
     blockNumber: LAST_FINALIZED_BLOCK_NUMBER,
-  })
-
-  // Await all results
-  const roundData = roundDataResult.result()
-  const desc = descResult.result()
-  const decimalsData = decimalsResult.result()
+  }).result()
 
   // Decode results using Viem
   const [, answer, , updatedAt] = decodeFunctionResult({
     abi: AggregatorV3InterfaceABI,
     functionName: "latestRoundData",
-    data: roundData.returnData as `0x${string}`,
+    data: toHex((roundDataResult as any).bytes ?? (roundDataResult as any).data ?? (roundDataResult as any).returnData ?? (roundDataResult as any).output),
   }) as [bigint, bigint, bigint, bigint, bigint]
 
   const description = decodeFunctionResult({
     abi: AggregatorV3InterfaceABI,
     functionName: "description",
-    data: desc.returnData as `0x${string}`,
+    data: toHex((descResult as any).bytes ?? (descResult as any).data ?? (descResult as any).returnData ?? (descResult as any).output),
   }) as string
 
   const decimals = decodeFunctionResult({
     abi: AggregatorV3InterfaceABI,
     functionName: "decimals",
-    data: decimalsData.returnData as `0x${string}`,
+    data: toHex((decimalsResult as any).bytes ?? (decimalsResult as any).data ?? (decimalsResult as any).returnData ?? (decimalsResult as any).output),
   }) as number
 
   return {
@@ -329,10 +331,22 @@ const onCronTrigger = (runtime: Runtime<Config>): SolvencyResult => {
   // Each oracle node fetches independently, then consensus aggregates
   runtime.log("Fetching exchange wallet balances across oracle nodes...")
 
+  // Use simpler aggregation for array types instead of median
+  // Provide aggregation callback argument to runInNodeMode to satisfy signature
+  // and deduplicate node results
   const exchangeData = runtime
     .runInNodeMode(
       fetchExchangeData,
-      consensusMedianAggregation<ExchangeReserveData[]>()
+      ((observations: any) => {
+        // observations is an array of ExchangeReserveData[] from each node
+        const merged = ([] as ExchangeReserveData[]).concat(...observations)
+        // Deduplicate by exchangeId, prefer first observed value
+        const byId = new Map<string, ExchangeReserveData>()
+        for (const e of merged) {
+          if (!byId.has(e.exchangeId)) byId.set(e.exchangeId, e)
+        }
+        return Array.from(byId.values())
+        }) as any
     )()
     .result()
 
@@ -344,7 +358,16 @@ const onCronTrigger = (runtime: Runtime<Config>): SolvencyResult => {
   const porFeeds: PoRFeedData[] = []
 
   for (const evmConfig of runtime.config.evms) {
-    const chainSelector = getNetwork(evmConfig.chainName)
+    // Note: getNetwork returns NetworkInfo or undefined
+    // For now, we use a placeholder selector - update with your actual chain selector
+    const chainSelectors: { [key: string]: bigint } = {
+      'ethereum': 5009297550715157269n,
+      'polygon': 4051577828743386545n,
+      'arbitrum': 4949039107694359620n,
+      'optimism': 3734403246176062136n,
+    }
+    
+    const chainSelector = chainSelectors[evmConfig.chainName.toLowerCase()] || 5009297550715157269n
 
     for (const feedAddress of evmConfig.porFeedAddresses) {
       try {

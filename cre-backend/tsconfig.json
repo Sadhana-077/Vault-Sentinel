@@ -10,7 +10,7 @@
         "declarationMap": true,
         "sourceMap": true,
         "outDir": "./dist",
-        "rootDir": "./src",
+        "rootDir": "./cre/src",
         "strict": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
@@ -26,11 +26,11 @@
         "noFallthroughCasesInSwitch": true
     },
     "include": [
-        "src"
+        "cre/src"
     ],
     "exclude": [
         "node_modules",
         "dist",
-        "vault-sentinel-workflow"
+        "cre/vault-sentinel-workflow"
     ]
 }

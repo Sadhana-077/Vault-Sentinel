@@ -10,53 +10,59 @@ const router = express.Router();
 
 // Health check
 router.get('/health', (_req: Request, res: Response) => {
-  res.json({ status: 'ok', timestamp: Date.now() });
+  return res.json({ status: 'ok', timestamp: Date.now() });
 });
 
 // Get all exchanges
-router.get('/exchanges', (_req: Request, res: Response<ApiResponse<typeof exchangeService.getAllExchanges>>) => {
-  try {
-    const exchanges = exchangeService.getAllExchanges();
-    res.json({
-      success: true,
-      data: exchanges,
-      timestamp: Date.now(),
-    });
-  } catch (error) {
-    logger.error({ error }, 'Failed to fetch exchanges');
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch exchanges',
-      timestamp: Date.now(),
-    });
+router.get(
+  '/exchanges',
+  (_req: Request, res: Response<ApiResponse<ReturnType<typeof exchangeService.getAllExchanges>>>) => {
+    try {
+      const exchanges = exchangeService.getAllExchanges();
+      return res.json({
+        success: true,
+        data: exchanges,
+        timestamp: Date.now(),
+      });
+    } catch (error) {
+      logger.error({ error }, 'Failed to fetch exchanges');
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to fetch exchanges',
+        timestamp: Date.now(),
+      });
+    }
   }
-});
+);
 
 // Get solvency for all exchanges
-router.get('/solvency', async (_req: Request, res: Response<ApiResponse<Map<string, SolvencyData>>>) => {
-  try {
-    const solvencies = await calculateAllSolvencies();
-    const data = Array.from(solvencies.entries()).reduce(
-      (acc, [key, value]) => {
-        acc[key] = value;
-        return acc;
-      },
-      {} as Record<string, SolvencyData>
-    );
-    res.json({
-      success: true,
-      data,
-      timestamp: Date.now(),
-    });
-  } catch (error) {
-    logger.error({ error }, 'Failed to fetch solvencies');
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch solvencies',
-      timestamp: Date.now(),
-    });
+router.get(
+  '/solvency',
+  async (_req: Request, res: Response<ApiResponse<Record<string, SolvencyData>>>) => {
+    try {
+      const solvencies = await calculateAllSolvencies();
+      const data = Array.from(solvencies.entries()).reduce(
+        (acc, [key, value]) => {
+          acc[key] = value;
+          return acc;
+        },
+        {} as Record<string, SolvencyData>
+      );
+      return res.json({
+        success: true,
+        data,
+        timestamp: Date.now(),
+      });
+    } catch (error) {
+      logger.error({ error }, 'Failed to fetch solvencies');
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to fetch solvencies',
+        timestamp: Date.now(),
+      });
+    }
   }
-});
+);
 
 // Get solvency for specific exchange
 router.get(
@@ -65,7 +71,6 @@ router.get(
     try {
       const { exchange } = req.params;
 
-      // Validate exchange exists
       if (!exchangeService.getExchange(exchange)) {
         return res.status(404).json({
           success: false,
@@ -75,14 +80,14 @@ router.get(
       }
 
       const solvency = await calculateSolvency(exchange);
-      res.json({
+      return res.json({
         success: true,
         data: solvency,
         timestamp: Date.now(),
       });
     } catch (error) {
       logger.error({ error, exchange: req.params.exchange }, 'Failed to fetch solvency');
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: 'Failed to fetch solvency',
         timestamp: Date.now(),
@@ -107,14 +112,14 @@ router.get(
       }
 
       const reserves = await fetchReserveData(exchange);
-      res.json({
+      return res.json({
         success: true,
         data: reserves,
         timestamp: Date.now(),
       });
     } catch (error) {
       logger.error({ error, exchange: req.params.exchange }, 'Failed to fetch reserves');
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: 'Failed to fetch reserves',
         timestamp: Date.now(),
@@ -139,14 +144,14 @@ router.get(
       }
 
       const liabilities = await fetchLiabilityData(exchange);
-      res.json({
+      return res.json({
         success: true,
         data: liabilities,
         timestamp: Date.now(),
       });
     } catch (error) {
       logger.error({ error, exchange: req.params.exchange }, 'Failed to fetch liabilities');
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: 'Failed to fetch liabilities',
         timestamp: Date.now(),
