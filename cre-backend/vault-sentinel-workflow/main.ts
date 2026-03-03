@@ -28,7 +28,6 @@ import {
   LAST_FINALIZED_BLOCK_NUMBER,
   type Runtime,
   type NodeRuntime,
-  type HTTPSendRequester,
 } from "@chainlink/cre-sdk"
 import { z } from "zod"
 import { encodeFunctionData, decodeFunctionResult } from "viem"
@@ -100,91 +99,8 @@ type SolvencyResult = {
 }
 
 // ============================================================
-// Wallet Balance Fetcher
-// Fetches ETH balance from Etherscan API for known exchange wallets
-// ============================================================
-
-const fetchWalletBalance = (
-  sendRequester: HTTPSendRequester,
-  walletUrl: string,
-  exchangeId: string
-): ExchangeWalletBalance => {
-  const req = {
-    url: walletUrl,
-    method: "GET" as const,
-  }
-
-  const resp = sendRequester.sendRequest(req).result()
-
-  if (resp.statusCode !== 200) {
-    // Return zero balance on API failure — don't crash the workflow
-    return {
-      exchangeId,
-      address: walletUrl,
-      balanceWei: 0n,
-      balanceEth: 0,
-    }
-  }
-
-  const bodyText = new TextDecoder().decode(resp.body)
-
-  try {
-    const data = JSON.parse(bodyText) as {
-      status: string
-      result: string
-    }
-
-    const balanceWei = BigInt(data.result || "0")
-    const balanceEth = Number(balanceWei) / 1e18
-
-    // Extract address from URL for tracking
-    const addressMatch = walletUrl.match(/address=(0x[a-fA-F0-9]{40})/)
-    const address = addressMatch ? addressMatch[1] : "unknown"
-
-    return {
-      exchangeId,
-      address,
-      balanceWei,
-      balanceEth,
-    }
-  } catch {
-    return {
-      exchangeId,
-      address: "parse-error",
-      balanceWei: 0n,
-      balanceEth: 0,
-    }
-  }
-}
-
-// ============================================================
-// Exchange API Health Checker
-// Verifies that the exchange's reserve API endpoint is reachable
-// ============================================================
-
-const checkExchangeApi = (
-  sendRequester: HTTPSendRequester,
-  apiUrl: string
-): boolean => {
-  try {
-    const req = {
-      url: apiUrl,
-      method: "GET" as const,
-      headers: {
-        "User-Agent": "VaultSentinel/1.0 CRE-Oracle",
-      },
-    }
-
-    const resp = sendRequester.sendRequest(req).result()
-    return resp.statusCode >= 200 && resp.statusCode < 400
-  } catch {
-    return false
-  }
-}
-
-// ============================================================
 // Node-level data fetcher
-// Each oracle node fetches wallet balances independently.
+// Each oracle node fetches wallet balances via batched HTTP call.
 // Results are aggregated via consensus.
 // ============================================================
 
@@ -194,18 +110,58 @@ const fetchExchangeData = (
   const httpClient = new HTTPClient()
   const results: ExchangeReserveData[] = []
 
+  // Extract all addresses from all exchanges
+  const allAddresses: string[] = []
+
   for (const exchange of nodeRuntime.config.exchanges) {
-    // Fetch wallet balances for this exchange
-    // CRE limits HTTP calls to 5 per execution, so we batch strategically
+    for (const walletUrl of exchange.walletTrackerUrls) {
+      const addressMatch = walletUrl.match(/address=(0x[a-fA-F0-9]{40})/i)
+      if (addressMatch) {
+        const addr = addressMatch[1].toLowerCase()
+        allAddresses.push(addr)
+      }
+    }
+  }
+
+  // To stay within the limit of 5 HTTP calls, we batch all addresses into a single Etherscan call
+  let balancesByAccount: Record<string, bigint> = {}
+
+  if (allAddresses.length > 0) {
+    const multiUrl = `https://api.etherscan.io/api?module=account&action=balancemulti&address=${allAddresses.join(",")}&tag=latest`
+    const req = { url: multiUrl, method: "GET" as const }
+
+    try {
+      const resp = httpClient.sendRequest(nodeRuntime, req).result()
+      if (resp.statusCode === 200) {
+        const bodyText = new TextDecoder().decode(resp.body)
+        const data = JSON.parse(bodyText) as { status: string, result: { account: string, balance: string }[] | string }
+        if (Array.isArray(data.result)) {
+          for (const item of data.result) {
+            balancesByAccount[item.account.toLowerCase()] = BigInt(item.balance || "0")
+          }
+        }
+      }
+    } catch (err) {
+      // API failure or parse error, default balances to 0 will ensue
+    }
+  }
+
+  for (const exchange of nodeRuntime.config.exchanges) {
     const walletBalances: ExchangeWalletBalance[] = []
 
-    for (const walletUrl of exchange.walletTrackerUrls.slice(0, 2)) {
-      const balance = fetchWalletBalance(
-        { sendRequest: (req) => httpClient.sendRequest(nodeRuntime, req) },
-        walletUrl,
-        exchange.exchangeId
-      )
-      walletBalances.push(balance)
+    for (const walletUrl of exchange.walletTrackerUrls) {
+      const addressMatch = walletUrl.match(/address=(0x[a-fA-F0-9]{40})/i)
+      const address = addressMatch ? addressMatch[1] : "unknown"
+      const lowerAddr = address.toLowerCase()
+      const balanceWei = balancesByAccount[lowerAddr] || 0n
+      const balanceEth = Number(balanceWei) / 1e18
+
+      walletBalances.push({
+        exchangeId: exchange.exchangeId,
+        address,
+        balanceWei,
+        balanceEth,
+      })
     }
 
     const totalReserveEth = walletBalances.reduce(
@@ -218,7 +174,7 @@ const fetchExchangeData = (
       name: exchange.name,
       walletBalances,
       totalReserveEth,
-      apiReachable: true, // Simplified — full version checks API health
+      apiReachable: true, // Simplified API check 
       timestamp: Date.now(),
     })
   }

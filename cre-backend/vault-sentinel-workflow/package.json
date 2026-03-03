@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "CRE workflow for fetching real-time crypto exchange solvency data via Chainlink oracles",
   "main": "main.ts",
-  "scripts": {
-    "postinstall": "bunx cre-setup"
-  },
+  "scripts": {},
   "dependencies": {
     "@chainlink/cre-sdk": "^1.0.9",
     "zod": "^3.24.1",
