@@ -8,6 +8,7 @@ This is the **unified backend** for VaultSentinel. It combines the **Express.js 
 
 ```
 cre-backend/
+<<<<<<< HEAD
 ├── backend-contract/            ← Smart contract artifacts & ABIs
 │   └── abi/                      ← AggregatorV3Interface ABI
 ├── cre/                         ← Core backend logic & CRE workflow
@@ -31,6 +32,46 @@ cre-backend/
 ├── .env                         ← Environment variables
 ├── project.yaml                 ← Chainlink CRE project config
 └── secrets.yaml                 ← CRE secrets (do not commit)
+=======
+├── src/                          ← Express API server (TypeScript)
+│   ├── index.ts                  ← Entry point (Express app)
+│   ├── routes/
+│   │   └── index.ts              ← REST route definitions
+│   ├── services/
+│   │   ├── exchange.service.ts   ← Exchange registry (10 exchanges)
+│   │   ├── cache.service.ts      ← In-memory caching (15-min TTL)
+│   │   ├── merkle.service.ts     ← Merkle tree / proof verification
+│   │   └── rpc.service.ts        ← Ethers.js RPC providers
+│   ├── workflows/
+│   │   ├── reserve.workflow.ts   ← Fetch on-chain wallet balances
+│   │   ├── liability.workflow.ts ← Fetch/mock liability data
+│   │   └── solvency.workflow.ts  ← Compute solvency ratios
+│   ├── cre/
+│   │   ├── creWorkflow.ts        ← CRE workflow orchestrator
+│   │   ├── creTrigger.ts         ← HTTP trigger endpoints
+│   │   └── creScheduler.ts       ← Cron scheduler (every 5 min)
+│   ├── types/
+│   │   └── index.ts              ← Shared TypeScript types
+│   ├── middleware/               ← Express middleware
+│   └── utils/
+│       └── logger.ts             ← Pino structured logger
+│
+├── vault-sentinel-workflow/      ← Chainlink CRE on-chain workflow (Bun)
+│   ├── main.ts                   ← CRE workflow entry point
+│   ├── config.staging.json
+│   ├── config.production.json
+│   ├── workflow.yaml
+│   └── package.json              ← Bun-based CRE SDK deps
+│
+├── contracts/
+│   └── abi/                      ← AggregatorV3Interface ABI
+│
+├── package.json                  ← Main Node.js dependencies
+├── tsconfig.json                 ← TypeScript config
+├── .env                          ← Environment variables
+├── project.yaml                  ← Chainlink CRE project config
+└── secrets.yaml                  ← CRE secrets (do not commit)
+>>>>>>> updation-data-wasm
 ```
 
 ---

@@ -6,8 +6,8 @@ export function DashboardHeader() {
   return (
     <header className="flex items-center justify-between border-b border-border px-6 py-4">
       <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-          <Shield className="h-5 w-5 text-primary" />
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 overflow-hidden">
+          <img src="/logo.png?v=2" alt="VaultSentinel Logo" className="h-full w-full object-cover" />
         </div>
         <div>
           <h1 className="text-lg font-semibold text-foreground font-sans">

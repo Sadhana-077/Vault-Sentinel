@@ -10,7 +10,11 @@
         "declarationMap": true,
         "sourceMap": true,
         "outDir": "./dist",
+<<<<<<< HEAD
         "rootDir": "./cre/src",
+=======
+        "rootDir": "./src",
+>>>>>>> updation-data-wasm
         "strict": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
@@ -26,11 +30,19 @@
         "noFallthroughCasesInSwitch": true
     },
     "include": [
+<<<<<<< HEAD
         "cre/src"
+=======
+        "src"
+>>>>>>> updation-data-wasm
     ],
     "exclude": [
         "node_modules",
         "dist",
+<<<<<<< HEAD
         "cre/vault-sentinel-workflow"
+=======
+        "vault-sentinel-workflow"
+>>>>>>> updation-data-wasm
     ]
 }
