@@ -4,11 +4,11 @@ production-settings:
   workflow-artifacts:
     config-path: ./config.production.json
     secrets-path: ../secrets.yaml
-    workflow-path: ./wasm/workflow.wasm
+    workflow-path: ./main.ts
 staging-settings:
   user-workflow:
     workflow-name: vault-sentinel-solvency-staging
   workflow-artifacts:
     config-path: ./config.staging.json
     secrets-path: ../secrets.yaml
-    workflow-path: ./wasm/workflow.wasm
+    workflow-path: ./main.ts
