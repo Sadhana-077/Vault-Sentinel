@@ -1,18 +1,14 @@
-# ==========================================================================
-# VaultSentinel CRE Workflow Configuration
-# ==========================================================================
-staging-settings:
-  user-workflow:
-    workflow-name: "vault-sentinel-solvency-staging"
-  workflow-artifacts:
-    workflow-path: "./main.ts"
-    config-path: "./config.staging.json"
-    secrets-path: "../secrets.yaml"
-# ==========================================================================
 production-settings:
   user-workflow:
-    workflow-name: "vault-sentinel-solvency-production"
+    workflow-name: vault-sentinel-solvency-production
   workflow-artifacts:
-    workflow-path: "./main.ts"
-    config-path: "./config.production.json"
-    secrets-path: "../secrets.yaml"
+    config-path: ./config.production.json
+    secrets-path: ../secrets.yaml
+    workflow-path: ./wasm/workflow.wasm
+staging-settings:
+  user-workflow:
+    workflow-name: vault-sentinel-solvency-staging
+  workflow-artifacts:
+    config-path: ./config.staging.json
+    secrets-path: ../secrets.yaml
+    workflow-path: ./wasm/workflow.wasm
