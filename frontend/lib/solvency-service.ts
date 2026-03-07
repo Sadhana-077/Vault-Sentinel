@@ -27,20 +27,22 @@ import {
 
 async function fetchEthBalance(address: string): Promise<number> {
   try {
-    const apiKey = process.env.ETHERSCAN_API_KEY || ""
-    const url = apiKey
-      ? `https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest&apikey=${apiKey}`
-      : `https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest`
-
-    const res = await fetch(url, {
-      headers: { "User-Agent": "VaultSentinel/1.0" },
+    const res = await fetch("https://eth.llamarpc.com", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "eth_getBalance",
+        params: [address, "latest"],
+        id: 1,
+      }),
       signal: AbortSignal.timeout(10000),
     })
 
     if (!res.ok) return 0
 
-    const data = (await res.json()) as { status: string; result: string }
-    if (data.status !== "1") return 0
+    const data = await res.json()
+    if (data.error || !data.result) return 0
 
     return Number(BigInt(data.result)) / 1e18
   } catch {
