@@ -1,173 +1,197 @@
-Vault Sentinel
-Real-Time Crypto Exchange Solvency Monitoring Platform
-Overview
-Vault Sentinel is a Web3 transparency and risk monitoring platform designed to evaluate the solvency of centralized cryptocurrency exchanges in near real-time.
-The system tracks on-chain reserve wallets, verifies off-chain liabilities using Merkle proofs, computes solvency ratios, and exposes results through a backend API and browser extension interface. The architecture supports automated execution via Chainlink CRE-based workflows.
+# Vault Sentinel
 
-Problem Statement
-Users cannot independently verify whether a centralized exchange holds sufficient reserves to cover customer liabilities. Historical exchange failures have demonstrated the need for transparent, automated, and verifiable solvency monitoring.
+**Vault Sentinel** is an intelligent monitoring and risk-detection system for DeFi vaults that automatically detects abnormal activity, potential exploits, and risky vault conditions using programmable workflows powered by **Chainlink CRE (Chainlink Runtime Environment)**.
 
-Solution
-Vault Sentinel provides:
-On-chain reserve tracking through RPC-based wallet balance monitoring
-Off-chain liability verification using Merkle tree proofs
-Solvency ratio computation and classification
+Built for the **Chainlink Hackathon**, Vault Sentinel aims to improve the safety and transparency of DeFi vault systems by enabling real-time monitoring, automated alerts, and proactive risk detection.
 
-Automated CRE-triggered backend workflows
-Chrome extension interface for user-facing monitoring
 
-System Architecture
-Components
-Backend (Node.js + TypeScript)
+# Problem Statement
 
-Reserve fetching via blockchain RPC endpoints
+DeFi vaults manage millions of dollars in user funds. However, they face several major challenges:
 
-Liability verification via Merkle tree validation
+* **Delayed exploit detection** — Many attacks are detected only after funds are drained.
+* **Lack of real-time monitoring** for abnormal vault behavior.
+* **Manual risk analysis** instead of automated threat detection.
+* **Fragmented security tooling** across the ecosystem.
+* **Poor visibility** for users into vault safety and abnormal activity.
 
-Solvency ratio computation
+These issues make DeFi vaults vulnerable to:
 
-REST API endpoints
+* Flash loan attacks
+* Sudden liquidity drains
+* Suspicious large withdrawals
+* Smart contract exploitation
 
-CRE trigger and scheduler module
+A **proactive monitoring and alerting system** is needed to detect risks **before damage occurs**.
 
-Chrome Extension
+---
 
-Displays exchange solvency status
+# Solution: Vault Sentinel
 
-Fetches backend results
+Vault Sentinel provides a **real-time DeFi vault monitoring system** that continuously tracks vault activity and identifies suspicious behavior.
 
-Real-time monitoring interface
+The platform:
 
-CRE Workflow Layer
+* Monitors vault transactions and liquidity changes
+* Detects abnormal patterns and risk indicators
+* Generates automated alerts
+* Provides a dashboard for risk visibility
+* Uses **Chainlink CRE workflows** for decentralized automation
 
-Automated solvency checks
+Vault Sentinel acts as a **security sentinel for DeFi vaults**, ensuring transparency and faster incident detection.
 
-Batch execution across exchanges
 
-Scheduled verification logic
+# Key Features
 
-Core Features
-Multi-network RPC support
+### Real-Time Vault Monitoring
 
-Configurable exchange wallet tracking
+Continuously tracks vault transactions and liquidity movements.
 
-Merkle proof validation
+### Risk Detection Engine
 
-Automated CRE-based execution
+Detects abnormal activities such as:
 
-REST endpoints for integration
+* Sudden liquidity drops
+* Large withdrawals
+* Suspicious transaction spikes
+* Contract interaction anomalies
 
-Modular backend architecture
+### Automated Alerts
 
-Production-ready TypeScript structure
+Notifies users and developers when risky conditions are detected.
 
-Technology Stack
-Backend:
+### Dashboard for Risk Visibility
 
-Node.js
+Displays vault health metrics and alerts in a simple UI.
 
-Express
+### CRE-Powered Automation
 
-TypeScript
+Uses **Chainlink CRE workflows** to automate monitoring and trigger actions.
 
-Ethers.js
 
-node-cron
+# Chainlink CRE Usage
 
-Pino (logging)
+Vault Sentinel leverages **Chainlink Runtime Environment (CRE)** to create programmable monitoring workflows.
 
-Extension:
+CRE enables:
 
-Chrome Manifest V3
+* Automated event monitoring
+* Decentralized workflow execution
+* Trigger-based responses for suspicious vault behavior
 
-React / TypeScript (if applicable)
+### Example CRE Workflow
 
-Infrastructure:
+1. Monitor vault smart contract events
+2. Detect abnormal transaction patterns
+3. Trigger automated alert
+4. Log event for monitoring dashboard
 
-Blockchain RPC providers
-Chainlink CRE integration-ready structure
+Using CRE ensures the system is:
 
-Repository Structure
+* Decentralized
+* Reliable
+* Trust-minimized
+* Scalable across multiple vaults
 
-Vault-Sentinel/
- ├── backend/
- │    ├── src/
- │    │    ├── cre/
- │    │    ├── services/
- │    │    ├── routes/
- │    │    └── index.ts
- │    └── package.json
- │
- ├── extension/
- │    ├── manifest.json
- │    ├── popup/
- │    └── background/
- │
- ├── README.md
- └── package.json
 
-Setup Instructions
+# Architecture
 
-1. Clone the repository
-git clone https://github.com/Sadhana-077/Vault-Sentinel.git
-cd Vault-Sentinel
+Frontend
 
-2. Install backend dependencies
-cd backend
-pnpm install
+* User dashboard for vault monitoring
+* Displays risk alerts and vault health
 
-3. Configure environment variables
-Create a .env file inside backend/:
+Backend
 
-PORT=3001
-CRE_SCHEDULER_ENABLED=true
-CRE_CRON_EXPRESSION=*/5 * * * *
-CRE_CONCURRENCY=3
-CRE_TIMEZONE=UTC
-Add RPC URLs and exchange configuration as required.
+* Processes vault data
+* Runs monitoring logic
+* Communicates with CRE workflows
 
-4. Start backend
-pnpm dev
-or
-pnpm start
-CRE Endpoints
-POST /api/cre/trigger/:exchangeId
-POST /api/cre/trigger-batch
-POST /api/cre/trigger-all
-GET  /api/cre/status
-Solvency Calculation Logic
-Solvency Ratio:
+Chainlink CRE Layer
 
-Solvency Ratio = Total On-Chain Reserves / Verified Liabilities
-Classification:
+* Executes automated workflows
+* Detects events and triggers alerts
 
-Ratio > 1.0 → Solvent
+Blockchain Layer
 
-Ratio = 1.0 → Fully Backed
+* Vault smart contracts
+* Transaction data and liquidity events
 
-Ratio < 1.0 → Insolvent
 
-Security Considerations
-No private keys stored
-RPC read-only interaction
-Merkle proof verification ensures liability integrity
-Environment variables excluded via .gitignore
+# How It Works
 
-Versioning
-Current stable release:
+1. Vault Sentinel monitors vault smart contracts.
+2. Transaction and liquidity data are analyzed.
+3. Risk indicators are evaluated.
+4. CRE workflows trigger alerts when suspicious activity occurs.
+5. Users view alerts and vault health on the dashboard.
 
-v1.0.0 – CRE Integrated Solvency Monitoring System
+---
 
-Future Improvements
-AI-based anomaly detection
+# Use Cases
 
-Historical solvency trend analysis
+* DeFi vault monitoring
+* Early exploit detection
+* Protocol risk management
+* Investor safety dashboards
+* Automated DeFi security alerts
 
-Exchange risk scoring system
 
-Multi-chain expansion
+# Chainlink Hackathon Submission
 
-Alert notification system
+This project was built as part of the **Chainlink Hackathon** to demonstrate how **Chainlink CRE** can be used to create automated security monitoring systems for DeFi.
 
-License
-This project is for academic and research purposes.
+Vault Sentinel showcases:
+
+* Real-world use of **Chainlink CRE workflows**
+* Automated on-chain event monitoring
+* DeFi security tooling
+* Intelligent vault risk detection
+
+
+# Future Plans
+
+Vault Sentinel will evolve into a full **DeFi security monitoring platform**.
+
+Planned improvements include:
+
+### Multi-Protocol Monitoring
+
+Support for multiple DeFi protocols and vault systems.
+
+### AI-Based Risk Detection
+
+Machine learning models to detect complex exploit patterns.
+
+### Cross-Chain Monitoring
+
+Support for monitoring vaults across multiple blockchains.
+
+### Automated Response System
+
+Ability to trigger protective actions when risks are detected.
+
+### Security Analytics Dashboard
+
+Advanced visualization of vault security metrics.
+
+
+# Impact
+
+Vault Sentinel improves the DeFi ecosystem by:
+
+* Increasing transparency
+* Reducing exploit risks
+* Providing real-time monitoring
+* Protecting user funds
+
+By combining **DeFi monitoring + Chainlink CRE automation**, Vault Sentinel acts as a **guardian for decentralized vaults**.
+
+
+
+# Team
+
+Built for the **Chainlink Hackathon** by contributors passionate about improving **DeFi security and automation**.
+
+
+
