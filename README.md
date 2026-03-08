@@ -24,7 +24,7 @@ These issues make DeFi vaults vulnerable to:
 
 A **proactive monitoring and alerting system** is needed to detect risks **before damage occurs**.
 
----
+
 
 # Solution: Vault Sentinel
 
@@ -95,6 +95,7 @@ Using CRE ensures the system is:
 
 
 # Architecture
+
 
 Frontend
 
